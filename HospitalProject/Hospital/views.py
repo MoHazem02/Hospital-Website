@@ -12,13 +12,13 @@ from django.shortcuts import get_object_or_404
 def index(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("login"))
-    return render(request, "register.html")
+    return render(request, "index.html", {"patient": Patient.objects.get(username=request.user.username)})
 
 
 def login_view(request):
     if request.method == "POST":
         # Attempt to sign user in
-        username = request.POST["username"]
+        username = request.POST["uname"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
 
@@ -59,8 +59,11 @@ def logout_view(request):
 
 def register(request):
     if request.method == "POST":
-        username = request.POST["username"]
+        fName = request.POST["fname"]
+        LName = request.POST["lname"]
+        username = request.POST["uname"]
         email = request.POST["email"]
+        gender = request.POST["gender"]
 
         # Ensure password matches confirmation
         password = request.POST["password"]
@@ -72,14 +75,25 @@ def register(request):
 
         # Attempt to create new user
         try:
-            user = User.objects.create_user(username, email, password)
-            user.save()
+            patient = Patient.objects.create_user(role="PATIENT", first_name=fName, last_name=LName, username= username, password=password, email=email, sex = "M" if gender == "Male" else "F")
+            patient.save()
         except IntegrityError:
-            return render(request, "auctions/register.html", {
+            return render(request, "register.html", {
                 "message": "Username already taken."
             })
-        login(request, user)
+        login(request, patient)
         return HttpResponseRedirect(reverse("index"))
     else:
-        return render(request, "auctions/register.html")
+        return render(request, "register.html")
 
+def about(request):
+    if request.method == "POST":
+        pass
+    else:
+        return render(request, "about.html", {"patient": Patient.objects.get(username=request.user.username)})
+    
+def service(request):
+    if request.method == "POST":
+        pass
+    else:
+        return render(request, "service.html", {"patient": Patient.objects.get(username=request.user.username)})
