@@ -9,3 +9,6 @@ HospitalProject/Hospital/__pycache__/
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+HospitalProject/HospitalProject/__pycache__/__init__.cpython-310.pyc
+HospitalProject/HospitalProject/__pycache__/urls.cpython-310.pyc
+HospitalProject/HospitalProject/__pycache__/wsgi.cpython-310.pyc

@@ -43,9 +43,9 @@ def staff_login(request):
         # Check if authentication successful
         if user is not None:
             login(request, user)
-            return HttpResponseRedirect(reverse("index"))
+            return HttpResponseRedirect(reverse("admin"))
         else:
-            return render(request, "auctions/login.html", {
+            return render(request, "staff-login.html", {
                 "message": "Invalid username and/or password."
             })
     else:
@@ -97,3 +97,23 @@ def service(request):
         pass
     else:
         return render(request, "service.html", {"patient": Patient.objects.get(username=request.user.username)})
+    
+def pricing(request):
+    if request.method == "POST":
+        pass
+    else:
+        return render(request, "price.html", {"patient": Patient.objects.get(username=request.user.username)})
+
+@login_required    
+def admin(request):
+    if request.method == "POST":
+        pass
+    else:
+        return render(request, "admin.html", {"admin": User.objects.get(username=request.user.username)})
+    
+@login_required    
+def doctor_view(request):
+    if request.method == "POST":
+        pass
+    else:
+        return render(request, "doctor.html", {"doctor": Doctor.objects.get(username=request.user.username)})
