@@ -117,3 +117,9 @@ def doctor_view(request):
         pass
     else:
         return render(request, "doctor.html", {"doctor": Doctor.objects.get(username=request.user.username)})
+    
+def admin_view_doctors(request):
+    if request.method == 'POST':
+        pass
+    else:
+        return render(request, "admin_view_doctors.html")
