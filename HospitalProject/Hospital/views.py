@@ -122,4 +122,28 @@ def admin_view_doctors(request):
     if request.method == 'POST':
         pass
     else:
-        return render(request, "admin_view_doctors.html")
+        return render(request, "admin_view_doctors.html", {"doctors": Doctor.objects.all()})
+    
+def admin_add_staff(request):
+    if request.method == 'POST':
+        fName = request.POST["fname"]
+        LName = request.POST["lname"]
+        username = request.POST["uname"]
+        email = request.POST["email"]
+        department = request.POST.get('optionsRadios')
+        profile_pic = request.POST.get('image_link')
+        password = request.POST["password"]
+        medicalDegree = request.POST.get('medicalDegree')
+        workingShift = request.POST.get('workingShift')
+        shiftOptions = {"Morning": 'M', "Evening": 'E', "Night": 'N'}
+        chosenShift = shiftOptions[workingShift]
+        # Attempt to create new user
+        try:
+            doctor = Doctor.objects.create_user(role="DOCTOR", first_name=fName, last_name=LName, username= username, password=password, email=email, 
+                                                 profile_picture=profile_pic, specialization= department, medical_degree= medicalDegree , working_shift= chosenShift)
+            doctor.save()
+        except IntegrityError:
+            return render(request, "admin_view_doctors.html")
+        return HttpResponseRedirect(reverse("admin view doctors"))
+    else:
+        return render(request, "add-staff.html")

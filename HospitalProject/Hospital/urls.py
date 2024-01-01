@@ -12,5 +12,6 @@ urlpatterns = [
     path("pricing", views.pricing, name="pricing"),
     path("admin", views.admin, name="admin"),
     path("doctor", views.doctor_view, name='doctor'),
-    path("staff/doctors", views.admin_view_doctors, name='admin view doctors')
+    path("staff/doctors", views.admin_view_doctors, name='admin view doctors'),
+    path("staff/add-staff", views.admin_add_staff, name='admin add staff'),
 ]

@@ -9,11 +9,11 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=30) 
 
 class Doctor(User):
-    medical_degree = models.CharField(max_length=30, choices=[('S', 'Specialist'), ('C', 'Consultant')], default='S')
+    medical_degree = models.CharField(max_length=30, choices=[('Specialist', 'Specialist'), ('Consultant', 'Consultant')], default='Specialist')
     working_shift = models.CharField(max_length=8, choices=[('M', 'Morning'), ('E', 'Evening'), ('N', 'Night')])
     profile_picture = models.CharField(max_length=255, null=True, blank=True)
     rating = models.FloatField(default=5.0, blank=True)
-    Specialization = models.CharField(max_length=30, choices=[('C', 'Cardiology'), ('D', 'Dentistry')], default='C')
+    specialization = models.CharField(max_length=30, choices=[('Cardiology', 'Cardiology'), ('Dentistry', 'Dentistry')], default='Cardiology')
 
     def __str__(self) -> str:
         return f"Dr. {self.first_name} {self.last_name}"
