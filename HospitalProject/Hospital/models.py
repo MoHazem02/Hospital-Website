@@ -11,7 +11,7 @@ class User(AbstractUser):
 class Doctor(User):
     medical_degree = models.CharField(max_length=30, choices=[('Specialist', 'Specialist'), ('Consultant', 'Consultant')], default='Specialist')
     working_shift = models.CharField(max_length=8, choices=[('M', 'Morning'), ('E', 'Evening'), ('N', 'Night')])
-    profile_picture = models.CharField(max_length=255, null=True, blank=True)
+    profile_picture = models.CharField(max_length=512, null=True, blank=True)
     rating = models.FloatField(default=5.0, blank=True)
     specialization = models.CharField(max_length=30, choices=[('Cardiology', 'Cardiology'), ('Dentistry', 'Dentistry')], default='Cardiology')
     experience = models.CharField(max_length=400, null=True, blank=True)

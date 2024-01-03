@@ -43,7 +43,9 @@ def staff_login(request):
         # Check if authentication successful
         if user is not None:
             login(request, user)
-            return HttpResponseRedirect(reverse("admin"))
+            if username == 'admin':
+                return HttpResponseRedirect(reverse("admin"))
+            return HttpResponseRedirect(reverse("doctor"))
         else:
             return render(request, "staff-login.html", {
                 "message": "Invalid username and/or password."
@@ -109,7 +111,10 @@ def admin(request):
     if request.method == "POST":
         pass
     else:
-        return render(request, "admin.html", {"admin": User.objects.get(username=request.user.username)})
+        total_patients = Patient.objects.count()
+        total_appointments = Appointment.objects.count()
+        return render(request, "admin.html", {"admin": User.objects.get(username=request.user.username), "messages":Message.objects.all(), "patients":total_patients,
+                                              "appointments":total_appointments})
     
 @login_required    
 def doctor_view(request):
