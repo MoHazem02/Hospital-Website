@@ -14,6 +14,7 @@ class Doctor(User):
     profile_picture = models.CharField(max_length=255, null=True, blank=True)
     rating = models.FloatField(default=5.0, blank=True)
     specialization = models.CharField(max_length=30, choices=[('Cardiology', 'Cardiology'), ('Dentistry', 'Dentistry')], default='Cardiology')
+    experience = models.CharField(max_length=400, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"Dr. {self.first_name} {self.last_name}"
@@ -30,16 +31,17 @@ class Patient(User):
 class Prescription(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    text = models.CharField(max_length=64)
+    text = models.CharField(max_length=64, null=True, blank=False)
 
 class Article(models.Model):
     subject = models.CharField(max_length=64)
     body = models.TextField()
 
 class Message(models.Model):
-    sender = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    receiver = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-    message = models.CharField(max_length=256)
+    sender = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='sender')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='receiver')
+    message_subject = models.CharField(max_length=128, null=True, blank=False)
+    message = models.CharField(max_length=256, null=True, blank=False)
 
     def __str__(self):
         return self.message

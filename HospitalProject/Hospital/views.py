@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from .models import User, Doctor, Patient
+from .models import User, Doctor, Patient, Message
 from django.shortcuts import get_object_or_404
 
 
@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404
 def index(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("login"))
-    return render(request, "index.html", {"patient": Patient.objects.get(username=request.user.username)})
+    return render(request, "index.html", {"patient": Patient.objects.get(username=request.user.username), "doctors": Doctor.objects.all()})
 
 
 def login_view(request):
@@ -90,7 +90,7 @@ def about(request):
     if request.method == "POST":
         pass
     else:
-        return render(request, "about.html", {"patient": Patient.objects.get(username=request.user.username)})
+        return render(request, "about.html", {"patient": Patient.objects.get(username=request.user.username), "doctors": Doctor.objects.all()})
     
 def service(request):
     if request.method == "POST":
@@ -102,7 +102,7 @@ def pricing(request):
     if request.method == "POST":
         pass
     else:
-        return render(request, "price.html", {"patient": Patient.objects.get(username=request.user.username)})
+        return render(request, "price.html", {"patient": Patient.objects.get(username=request.user.username), "doctors": Doctor.objects.all()})
 
 @login_required    
 def admin(request):
@@ -130,6 +130,7 @@ def admin_add_staff(request):
         LName = request.POST["lname"]
         username = request.POST["uname"]
         email = request.POST["email"]
+        Experience = request.POST["Experience"]
         department = request.POST.get('optionsRadios')
         profile_pic = request.POST.get('image_link')
         password = request.POST["password"]
@@ -139,7 +140,7 @@ def admin_add_staff(request):
         chosenShift = shiftOptions[workingShift]
         # Attempt to create new user
         try:
-            doctor = Doctor.objects.create_user(role="DOCTOR", first_name=fName, last_name=LName, username= username, password=password, email=email, 
+            doctor = Doctor.objects.create_user(role="DOCTOR", first_name=fName, last_name=LName, username= username, password=password, email=email, experience = Experience,
                                                  profile_picture=profile_pic, specialization= department, medical_degree= medicalDegree , working_shift= chosenShift)
             doctor.save()
         except IntegrityError:
@@ -147,3 +148,20 @@ def admin_add_staff(request):
         return HttpResponseRedirect(reverse("admin view doctors"))
     else:
         return render(request, "add-staff.html")
+    
+def make_appointment(request):
+    if request.method == 'POST':
+        pass
+    else:
+        return render(request, "appointment.html", {"doctors" : Doctor.objects.all()})
+
+def contact_us(request):
+    if request.method == 'POST':
+        sender_patient = request.user
+        message_subject = request.POST["message_subject"]
+        message_body = request.POST['message_body']
+        message = Message(sender=Patient.objects.get(username=request.user), receiver = User.objects.get(id=4), message_subject=message_subject, message=message_body)
+        message.save()
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        return render(request, 'contact.html')
