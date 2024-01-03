@@ -6,7 +6,13 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from .models import User, Doctor, Patient, Message, Appointment
 from datetime import datetime
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from django.conf import settings  
+from googleapiclient.discovery import build
 
+#SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 
 # Create your views here.
 def index(request):
@@ -71,7 +77,7 @@ def register(request):
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         if password != confirmation:
-            return render(request, "auctions/register.html", {
+            return render(request, "register.html", {
                 "message": "Passwords must match."
             })
 
@@ -121,7 +127,9 @@ def doctor_view(request):
     if request.method == "POST":
         pass
     else:
-        return render(request, "doctor.html", {"doctor": Doctor.objects.get(username=request.user.username)})
+        total_appointments = Appointment.objects.filter(doctor=Doctor.objects.get(username=request.user.username)).count()
+        return render(request, "doctor.html", {"doctor": Doctor.objects.get(username=request.user.username), "appointments" : total_appointments, 
+                                               "messages":Message.objects.filter(receiver=request.user.id)})
     
 def admin_view_doctors(request):
     if request.method == 'POST':

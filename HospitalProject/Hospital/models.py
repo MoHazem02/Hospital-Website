@@ -36,6 +36,7 @@ class Prescription(models.Model):
 class Article(models.Model):
     subject = models.CharField(max_length=64)
     body = models.TextField()
+    article_picture = models.CharField(max_length=512, null=True, blank=True)
 
 class Message(models.Model):
     sender = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='sender')
