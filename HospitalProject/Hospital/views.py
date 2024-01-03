@@ -4,8 +4,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from .models import User, Doctor, Patient, Message
-from django.shortcuts import get_object_or_404
+from .models import User, Doctor, Patient, Message, Appointment
+from datetime import datetime
 
 
 # Create your views here.
@@ -151,13 +151,20 @@ def admin_add_staff(request):
     
 def make_appointment(request):
     if request.method == 'POST':
-        pass
+        doctor = Doctor.objects.get(id=request.POST.get('chosen_doctor'))
+        scan = request.POST["scan"]
+        date_str = request.POST.get('date')
+        time_str = request.POST.get('time')
+        date = datetime.strptime(date_str, '%m/%d/%Y').date()
+        time = datetime.strptime(time_str, '%I:%M %p').time()
+        appointment = Appointment(patient=Patient.objects.get(username=request.user), doctor = doctor, appointment_date=date, appointment_time=time, image=scan)
+        appointment.save()
+        return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "appointment.html", {"doctors" : Doctor.objects.all()})
 
 def contact_us(request):
     if request.method == 'POST':
-        sender_patient = request.user
         message_subject = request.POST["message_subject"]
         message_body = request.POST['message_body']
         message = Message(sender=Patient.objects.get(username=request.user), receiver = User.objects.get(id=4), message_subject=message_subject, message=message_body)

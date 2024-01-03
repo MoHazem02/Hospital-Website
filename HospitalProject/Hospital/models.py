@@ -51,6 +51,7 @@ class Appointment(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     appointment_date = models.DateField()
     appointment_time = models.TimeField()
+    image = models.ImageField(upload_to='patient_images/', null=True, blank=True)
 
     def __str__(self) ->str:
         return f"Appointment with Dr.{self.doctor} on {self.appointment_date} at {self.appointment_time}"
