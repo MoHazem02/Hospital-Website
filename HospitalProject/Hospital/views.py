@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from .models import User, Doctor, Patient, Message, Appointment, Article
+from .models import User, Doctor, Patient, Message, Appointment, Article, Prescription
 from datetime import datetime
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -117,6 +117,8 @@ def admin(request):
     if request.method == "POST":
         pass
     else:
+        if request.user.username != 'admin':
+            return HttpResponseRedirect(reverse("logout"))
         total_patients = Patient.objects.count()
         total_appointments = Appointment.objects.count()
         return render(request, "admin.html", {"admin": User.objects.get(username=request.user.username), "messages":Message.objects.all(), "patients":total_patients,
@@ -128,8 +130,9 @@ def doctor_view(request):
         pass
     else:
         total_appointments = Appointment.objects.filter(doctor=Doctor.objects.get(username=request.user.username)).count()
-        return render(request, "doctor.html", {"doctor": Doctor.objects.get(username=request.user.username), "appointments" : total_appointments, 
-                                               "messages":Message.objects.filter(receiver=request.user.id)})
+        return render(request, "doctor.html", {"doctor": Doctor.objects.get(username=request.user.username), "appointments_count" : total_appointments, 
+                                               "messages":Message.objects.filter(receiver=request.user.id), "appointments" :
+                                                 Appointment.objects.filter(doctor=Doctor.objects.get(username=request.user.username))})
     
 def admin_view_doctors(request):
     if request.method == 'POST':
@@ -189,5 +192,14 @@ def contact_us(request):
 def blogs(request):
     return render(request, "blog.html", {"articles": Article.objects.all()})
 
-def view_blog(request, id:int):
+def view_blog(request, id : int):
     return render(request, "detail.html", {"article" : Article.objects.get(id=id), "articles": Article.objects.all()})
+
+def view_appointment(request, id : int):
+    if request.method == 'POST':
+        prescription_text = request.POST['prescription']
+        patient = Patient.objects.get(id = id)
+        prescription = Prescription(patient=patient, text=prescription_text, doctor=Doctor.objects.get(username=request.user))
+        prescription.save()
+        return HttpResponseRedirect(reverse("doctor"))
+    return render(request, "view_appointment.html", {"appointment" : Appointment.objects.get(id=id), "doctor": Doctor.objects.get(username=request.user.username)})

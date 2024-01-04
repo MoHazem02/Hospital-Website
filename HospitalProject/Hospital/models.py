@@ -54,6 +54,7 @@ class Appointment(models.Model):
     appointment_date = models.DateField()
     appointment_time = models.TimeField()
     image = models.ImageField(upload_to='patient_images/', null=True, blank=True)
+    done = models.BooleanField(default=False)
 
     def __str__(self) ->str:
         return f"Appointment with Dr.{self.doctor} on {self.appointment_date} at {self.appointment_time}"
