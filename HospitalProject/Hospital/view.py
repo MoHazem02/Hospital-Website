@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from .models import Hospital, Doctor, Patient, Message, Appointment, Article, Prescription
+from .models import User, Doctor, Patient, Message, Appointment, Article, Prescription
 from datetime import datetime
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -20,54 +20,54 @@ def execute_query(query, params=None):
         return cursor.fetchall()
 
 def index(request):
-    if not request.Hospital.is_authenticated:
+    if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("login"))
 
-    patient_query = "SELECT * FROM Hospital_patient WHERE Hospitalname = %s LIMIT 1"
-    patient = execute_query(patient_query, [request.Hospital.Hospitalname])
+    patient_query = "SELECT * FROM User_patient WHERE username = %s LIMIT 1"
+    patient = execute_query(patient_query, [request.user.username])
 
-    doctors_query = "SELECT * FROM Hospital_doctor"
+    doctors_query = "SELECT * FROM User_doctor"
     doctors = execute_query(doctors_query)
 
-    articles_query = "SELECT * FROM Hospital_article"
+    articles_query = "SELECT * FROM User_article"
     articles = execute_query(articles_query)
 
     return render(request, "index.html", {"patient": patient[0], "doctors": doctors, "articles": articles})
 
 def login_view(request):
     if request.method == "POST":
-        Hospitalname = request.POST["uname"]
+        username = request.POST["uname"]
         password = request.POST["password"]
 
-        Hospital_query = "SELECT * FROM Hospital_Hospital WHERE Hospitalname = %s AND password = %s LIMIT 1"
-        Hospital = execute_query(Hospital_query, [Hospitalname, password])
+        user_query = "SELECT * FROM User_user WHERE username = %s AND password = %s LIMIT 1"
+        user = execute_query(user_query, [username, password])
 
-        if Hospital:
-            login(request, Hospital[0])
+        if user:
+            login(request, user[0])
             return HttpResponseRedirect(reverse("index"))
         else:
             return render(request, "patient-login.html", {
-                "message": "Invalid Hospitalname and/or password."
+                "message": "Invalid username and/or password."
             })
     else:
         return render(request, "patient-login.html")
 
 def staff_login(request):
     if request.method == "POST":
-        Hospitalname = request.POST["Hospitalname"]
+        username = request.POST["username"]
         password = request.POST["password"]
 
-        Hospital_query = "SELECT * FROM Hospital_Hospital WHERE Hospitalname = %s AND password = %s LIMIT 1"
-        Hospital = execute_query(Hospital_query, [Hospitalname, password])
+        user_query = "SELECT * FROM User_user WHERE username = %s AND password = %s LIMIT 1"
+        user = execute_query(user_query, [username, password])
 
-        if Hospital:
-            login(request, Hospital[0])
-            if Hospitalname == 'admin':
+        if user:
+            login(request, user[0])
+            if username == 'admin':
                 return HttpResponseRedirect(reverse("admin"))
             return HttpResponseRedirect(reverse("doctor"))
         else:
             return render(request, "staff-login.html", {
-                "message": "Invalid Hospitalname and/or password."
+                "message": "Invalid username and/or password."
             })
     else:
         return render(request, "staff-login.html")
@@ -81,7 +81,7 @@ def register(request):
     if request.method == "POST":
         fName = request.POST["fname"]
         LName = request.POST["lname"]
-        Hospitalname = request.POST["uname"]
+        username = request.POST["uname"]
         email = request.POST["email"]
         gender = request.POST["gender"]
         password = request.POST["password"]
@@ -93,17 +93,17 @@ def register(request):
             })
 
         try:
-            patient_query = "INSERT INTO Hospital_patient (role, first_name, last_name, Hospitalname, password, email, sex) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            execute_query(patient_query, ["PATIENT", fName, LName, Hospitalname, password, email, "M" if gender == "Male" else "F"])
+            patient_query = "INSERT INTO Hospital_patient (role, first_name, last_name, username, password, email, sex) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            execute_query(patient_query, ["PATIENT", fName, LName, username, password, email, "M" if gender == "Male" else "F"])
         except IntegrityError:
             return render(request, "register.html", {
-                "message": "Hospitalname already taken."
+                "message": "Username already taken."
             })
 
-        Hospital_query = "SELECT * FROM Hospital_Hospital WHERE Hospitalname = %s LIMIT 1"
-        Hospital = execute_query(Hospital_query, [Hospitalname])
+        user_query = "SELECT * FROM Hospital_user WHERE username = %s LIMIT 1"
+        user = execute_query(user_query, [username])
 
-        login(request, Hospital[0])
+        login(request, user[0])
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "register.html")
@@ -113,8 +113,8 @@ def about(request):
     if request.method == "POST":
         pass
     else:
-        patient_query = "SELECT * FROM Hospital_patient WHERE Hospitalname = %s LIMIT 1"
-        patient = execute_query(patient_query, [request.Hospital.Hospitalname])
+        patient_query = "SELECT * FROM Hospital_patient WHERE username = %s LIMIT 1"
+        patient = execute_query(patient_query, [request.user.username])
 
         doctors_query = "SELECT * FROM Hospital_doctor"
         doctors = execute_query(doctors_query)
@@ -125,8 +125,8 @@ def service(request):
     if request.method == "POST":
         pass
     else:
-        patient_query = "SELECT * FROM Hospital_patient WHERE Hospitalname = %s LIMIT 1"
-        patient = execute_query(patient_query, [request.Hospital.Hospitalname])
+        patient_query = "SELECT * FROM Hospital_patient WHERE username = %s LIMIT 1"
+        patient = execute_query(patient_query, [request.user.username])
 
         return render(request, "service.html", {"patient": patient[0]})
 
@@ -134,8 +134,8 @@ def pricing(request):
     if request.method == "POST":
         pass
     else:
-        patient_query = "SELECT * FROM Hospital_patient WHERE Hospitalname = %s LIMIT 1"
-        patient = execute_query(patient_query, [request.Hospital.Hospitalname])
+        patient_query = "SELECT * FROM Hospital_patient WHERE username = %s LIMIT 1"
+        patient = execute_query(patient_query, [request.user.username])
 
         doctors_query = "SELECT * FROM Hospital_doctor"
         doctors = execute_query(doctors_query)
@@ -147,7 +147,7 @@ def admin(request):
     if request.method == "POST":
         pass
     else:
-        if request.Hospital.Hospitalname != 'admin':
+        if request.user.username != 'admin':
             return HttpResponseRedirect(reverse("logout"))
 
         total_patients_query = "SELECT COUNT(*) FROM Hospital_patient"
@@ -159,7 +159,7 @@ def admin(request):
         total_messages_query = "SELECT COUNT(*) FROM Hospital_message"
         total_messages = execute_query(total_messages_query)[0][0]
 
-        return render(request, "admin.html", {"admin": request.Hospital, "messages": total_messages, "patients": total_patients,
+        return render(request, "admin.html", {"admin": request.user, "messages": total_messages, "patients": total_patients,
                                               "appointments": total_appointments})
 
 @login_required
@@ -168,11 +168,11 @@ def doctor_view(request):
         pass
     else:
         total_appointments_query = "SELECT COUNT(*) FROM Hospital_appointment WHERE doctor_id = %s"
-        total_appointments = execute_query(total_appointments_query, [request.Hospital.id])[0][0]
+        total_appointments = execute_query(total_appointments_query, [request.user.id])[0][0]
 
-        return render(request, "doctor.html", {"doctor": request.Hospital, "appointments_count": total_appointments,
-                                               "messages": execute_query("SELECT * FROM Hospital_message WHERE receiver_id = %s", [request.Hospital.id]),
-                                               "appointments": execute_query("SELECT * FROM Hospital_appointment WHERE doctor_id = %s", [request.Hospital.id])})
+        return render(request, "doctor.html", {"doctor": request.user, "appointments_count": total_appointments,
+                                               "messages": execute_query("SELECT * FROM Hospital_message WHERE receiver_id = %s", [request.user.id]),
+                                               "appointments": execute_query("SELECT * FROM Hospital_appointment WHERE doctor_id = %s", [request.user.id])})
 
 
 def admin_view_doctors(request):
@@ -188,7 +188,7 @@ def admin_add_staff(request):
     if request.method == 'POST':
         fName = request.POST["fname"]
         LName = request.POST["lname"]
-        Hospitalname = request.POST["uname"]
+        username = request.POST["uname"]
         email = request.POST["email"]
         Experience = request.POST["Experience"]
         department = request.POST.get('optionsRadios')
@@ -200,8 +200,8 @@ def admin_add_staff(request):
         chosenShift = shiftOptions[workingShift]
 
         try:
-            doctor_query = "INSERT INTO Hospital_doctor (role, first_name, last_name, Hospitalname, password, email, experience, profile_picture, specialization, medical_degree, working_shift) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-            execute_query(doctor_query, ["DOCTOR", fName, LName, Hospitalname, password, email, Experience, profile_pic, department, medicalDegree, chosenShift])
+            doctor_query = "INSERT INTO Hospital_doctor (role, first_name, last_name, username, password, email, experience, profile_picture, specialization, medical_degree, working_shift) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            execute_query(doctor_query, ["DOCTOR", fName, LName, username, password, email, Experience, profile_pic, department, medicalDegree, chosenShift])
         except IntegrityError:
             return render(request, "admin_view_doctors.html")
 
@@ -219,7 +219,7 @@ def make_appointment(request):
         time = datetime.strptime(time_str, '%I:%M %p').time()
 
         appointment_query = "INSERT INTO Hospital_appointment (patient_id, doctor_id, appointment_date, appointment_time, image) VALUES (%s, %s, %s, %s, %s)"
-        execute_query(appointment_query, [request.Hospital.id, doctor_id, date, time, scan])
+        execute_query(appointment_query, [request.user.id, doctor_id, date, time, scan])
 
         return HttpResponseRedirect(reverse("index"))
     else:
@@ -232,7 +232,7 @@ def contact_us(request):
         message_body = request.POST['message_body']
 
         message_query = "INSERT INTO Hospital_message (sender_id, receiver_id, message_subject, message) VALUES (%s, %s, %s, %s)"
-        execute_query(message_query, [request.Hospital.id, 4, message_subject, message_body])
+        execute_query(message_query, [request.user.id, 4, message_subject, message_body])
 
         return HttpResponseRedirect(reverse("index"))
     else:
@@ -260,7 +260,7 @@ def view_appointment(request, id: int):
         patient = execute_query(patient_query, [id])
 
         prescription_query = "INSERT INTO Hospital_prescription (patient_id, text, doctor_id) VALUES (%s, %s, %s)"
-        execute_query(prescription_query, [patient[0][0], prescription_text, request.Hospital.id])
+        execute_query(prescription_query, [patient[0][0], prescription_text, request.user.id])
 
         appointment_query = "UPDATE Hospital_appointment SET done = TRUE WHERE patient_id = %s"
         execute_query(appointment_query, [patient[0][0]])
@@ -270,22 +270,22 @@ def view_appointment(request, id: int):
     appointment_query = "SELECT * FROM Hospital_appointment WHERE id = %s LIMIT 1"
     appointment = execute_query(appointment_query, [id])
     
-    return render(request, "view_appointment.html", {"appointment": appointment[0], "doctor": request.Hospital})
+    return render(request, "view_appointment.html", {"appointment": appointment[0], "doctor": request.user})
 
 def view_calendar(request):
-    if request.Hospital.role == 'DOCTOR':
+    if request.user.role == 'DOCTOR':
         doctor_query = "SELECT * FROM Hospital_doctor WHERE id = %s LIMIT 1"
-        doctor = execute_query(doctor_query, [request.Hospital.id])
+        doctor = execute_query(doctor_query, [request.user.id])
 
         appointments_query = "SELECT * FROM Hospital_appointment WHERE doctor_id = %s"
-        appointments = execute_query(appointments_query, [request.Hospital.id])
+        appointments = execute_query(appointments_query, [request.user.id])
 
         return render(request, 'calendar.html', {"doctor": doctor[0], "appointments": appointments, "is_doctor": True})
     return render(request, 'calendar.html', {"is_doctor": False})
 
 def history(request):
     completed_appointments_query = "SELECT * FROM Hospital_appointment WHERE patient_id = %s AND done = TRUE"
-    completed_appointments = execute_query(completed_appointments_query, [request.Hospital.id])
+    completed_appointments = execute_query(completed_appointments_query, [request.user.id])
 
     return render(request, "history.html", {"completed_appointments": completed_appointments})
 
@@ -294,7 +294,7 @@ def rate_doctor(request, appointment_id: int):
         rating = int(request.POST.get('rating'))
 
         doctor_query = "SELECT * FROM Hospital_doctor WHERE id = %s LIMIT 1"
-        doctor = execute_query(doctor_query, [request.Hospital.id])
+        doctor = execute_query(doctor_query, [request.user.id])
 
         completed_appointments_query = "SELECT * FROM Hospital_appointment WHERE id = %s AND done = TRUE LIMIT 1"
         completed_appointment = execute_query(completed_appointments_query, [appointment_id])
@@ -302,7 +302,7 @@ def rate_doctor(request, appointment_id: int):
         new_rating = (doctor[0][8] * doctor[0][9] + rating) / (doctor[0][9] + 1)
 
         update_doctor_query = "UPDATE Hospital_doctor SET rating = %s, completed_appointments = %s WHERE id = %s"
-        execute_query(update_doctor_query, [new_rating, doctor[0][9] + 1, request.Hospital.id])
+        execute_query(update_doctor_query, [new_rating, doctor[0][9] + 1, request.user.id])
 
     return HttpResponseRedirect(reverse("index"))
 
