@@ -16,4 +16,6 @@ urlpatterns = [
     path("staff/add-staff", views.admin_add_staff, name='admin add staff'),
     path("appointment", views.make_appointment, name='make appointment'),
     path("contact", views.contact_us, name='contact us'),
+    path("blogs", views.blogs, name='blogs'),
+    path("blogs/<int:id>", views.view_blog, name='blog')
 ]

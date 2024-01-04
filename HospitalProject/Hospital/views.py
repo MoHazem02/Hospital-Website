@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-from .models import User, Doctor, Patient, Message, Appointment
+from .models import User, Doctor, Patient, Message, Appointment, Article
 from datetime import datetime
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -18,7 +18,7 @@ from googleapiclient.discovery import build
 def index(request):
     if not request.user.is_authenticated:
         return HttpResponseRedirect(reverse("login"))
-    return render(request, "index.html", {"patient": Patient.objects.get(username=request.user.username), "doctors": Doctor.objects.all()})
+    return render(request, "index.html", {"patient": Patient.objects.get(username=request.user.username), "doctors": Doctor.objects.all(), "articles": Article.objects.all()})
 
 
 def login_view(request):
@@ -185,3 +185,9 @@ def contact_us(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, 'contact.html')
+    
+def blogs(request):
+    return render(request, "blog.html", {"articles": Article.objects.all()})
+
+def view_blog(request, id:int):
+    return render(request, "detail.html", {"article" : Article.objects.get(id=id), "articles": Article.objects.all()})
