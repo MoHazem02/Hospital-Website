@@ -19,5 +19,7 @@ urlpatterns = [
     path("blogs", views.blogs, name='blogs'),
     path("blogs/<int:id>", views.view_blog, name='blog'),
     path("appointment/<int:id>", views.view_appointment, name='view appointment'),
-    path("calendar", views.view_calendar, name='calendar')
+    path("calendar", views.view_calendar, name='calendar'),
+    path("history", views.history, name="history"),
+    path("rate/<int:appointment_id>", views.rate_doctor, name='rate')
 ]

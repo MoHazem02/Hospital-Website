@@ -11,6 +11,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from django.conf import settings  
 from googleapiclient.discovery import build
+import math
 
 #SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 
@@ -201,10 +202,12 @@ def view_appointment(request, id : int):
         prescription_text = request.POST['prescription']
         patient = Patient.objects.get(id = id)
         prescription = Prescription(patient=patient, text=prescription_text, doctor=Doctor.objects.get(username=request.user))
-        prescription.save()
         appointment = Appointment.objects.get(patient=Patient.objects.get(id = id))
+        appointment.doctor.completed_appointments += 1
         appointment.done = True
+        prescription.appointment = appointment
         appointment.save()
+        prescription.save()
         return HttpResponseRedirect(reverse("doctor"))
     return render(request, "view_appointment.html", {"appointment" : Appointment.objects.get(id=id), "doctor": Doctor.objects.get(username=request.user.username)})
 
@@ -213,3 +216,15 @@ def view_calendar(request):
         return render(request, 'calendar.html', {"doctor" : Doctor.objects.get(username=request.user.username), 
                                                  "appointments" : Appointment.objects.filter(doctor=Doctor.objects.get(username=request.user.username)), "is_doctor":True})
     return render(request, 'calendar.html', {"is_doctor":False})
+
+def history(request):
+    return render(request, "history.html", {"completed_appointments" : Appointment.objects.filter(patient = Patient.objects.get(username = request.user.username), done=True)})
+
+def rate_doctor(request, appointment_id : int):
+    if request.method == 'POST':
+        rating = int(request.POST.get('rating'))
+        appointment = Appointment.objects.get(id = appointment_id)
+        appointment.doctor.rating += rating
+        appointment.doctor.rating /= math.ceil(appointment.doctor.completed_appointments)
+        appointment.doctor.save()
+    return HttpResponseRedirect(reverse("index"))
