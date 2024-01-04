@@ -121,8 +121,9 @@ def admin(request):
             return HttpResponseRedirect(reverse("logout"))
         total_patients = Patient.objects.count()
         total_appointments = Appointment.objects.count()
+        total_messages = Message.objects.count()
         return render(request, "admin.html", {"admin": User.objects.get(username=request.user.username), "messages":Message.objects.all(), "patients":total_patients,
-                                              "appointments":total_appointments})
+                                              "appointments":total_appointments, "total_messages" : total_messages})
     
 @login_required    
 def doctor_view(request):
@@ -201,5 +202,14 @@ def view_appointment(request, id : int):
         patient = Patient.objects.get(id = id)
         prescription = Prescription(patient=patient, text=prescription_text, doctor=Doctor.objects.get(username=request.user))
         prescription.save()
+        appointment = Appointment.objects.get(patient=Patient.objects.get(id = id))
+        appointment.done = True
+        appointment.save()
         return HttpResponseRedirect(reverse("doctor"))
     return render(request, "view_appointment.html", {"appointment" : Appointment.objects.get(id=id), "doctor": Doctor.objects.get(username=request.user.username)})
+
+def view_calendar(request):
+    if request.user.role == 'DOCTOR':
+        return render(request, 'calendar.html', {"doctor" : Doctor.objects.get(username=request.user.username), 
+                                                 "appointments" : Appointment.objects.filter(doctor=Doctor.objects.get(username=request.user.username)), "is_doctor":True})
+    return render(request, 'calendar.html', {"is_doctor":False})
