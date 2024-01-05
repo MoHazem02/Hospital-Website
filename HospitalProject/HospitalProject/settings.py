@@ -80,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': '1234',
+        'PASSWORD': '',   # Your DB Server password
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -130,5 +130,4 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-GOOGLE_API_JSON_KEY_FILE = BASE_DIR / 'Hospital Credentials API.json'
 

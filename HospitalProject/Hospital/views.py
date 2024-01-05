@@ -1,19 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from .models import User, Doctor, Patient, Message, Appointment, Article, Prescription
-from datetime import datetime
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
-from django.conf import settings  
-from googleapiclient.discovery import build
+from datetime import datetime 
 import math
 
-#SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 
 # Create your views here.
 def index(request):
@@ -39,6 +33,7 @@ def login_view(request):
             })
     else:
         return render(request, "patient-login.html")
+
 
 def staff_login(request):
     if request.method == "POST":
@@ -100,18 +95,21 @@ def about(request):
         pass
     else:
         return render(request, "about.html", {"patient": Patient.objects.get(username=request.user.username), "doctors": Doctor.objects.all()})
-    
+
+
 def service(request):
     if request.method == "POST":
         pass
     else:
         return render(request, "service.html", {"patient": Patient.objects.get(username=request.user.username)})
-    
+
+
 def pricing(request):
     if request.method == "POST":
         pass
     else:
         return render(request, "price.html", {"patient": Patient.objects.get(username=request.user.username), "doctors": Doctor.objects.all()})
+
 
 @login_required    
 def admin(request):
@@ -126,6 +124,7 @@ def admin(request):
         return render(request, "admin.html", {"admin": User.objects.get(username=request.user.username), "messages":Message.objects.all(), "patients":total_patients,
                                               "appointments":total_appointments, "total_messages" : total_messages})
     
+
 @login_required    
 def doctor_view(request):
     if request.method == "POST":
@@ -136,12 +135,14 @@ def doctor_view(request):
                                                "messages":Message.objects.filter(receiver=request.user.id), "appointments" :
                                                  Appointment.objects.filter(doctor=Doctor.objects.get(username=request.user.username))})
     
+
 def admin_view_doctors(request):
     if request.method == 'POST':
         pass
     else:
         return render(request, "admin_view_doctors.html", {"doctors": Doctor.objects.all()})
     
+
 def admin_add_staff(request):
     if request.method == 'POST':
         fName = request.POST["fname"]
@@ -167,6 +168,7 @@ def admin_add_staff(request):
     else:
         return render(request, "add-staff.html")
     
+
 def make_appointment(request):
     if request.method == 'POST':
         doctor = Doctor.objects.get(id=request.POST.get('chosen_doctor'))
@@ -181,6 +183,7 @@ def make_appointment(request):
     else:
         return render(request, "appointment.html", {"doctors" : Doctor.objects.all()})
 
+
 def contact_us(request):
     if request.method == 'POST':
         message_subject = request.POST["message_subject"]
@@ -190,12 +193,15 @@ def contact_us(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, 'contact.html')
-    
+
+
 def blogs(request):
     return render(request, "blog.html", {"articles": Article.objects.all()})
 
+
 def view_blog(request, id : int):
     return render(request, "detail.html", {"article" : Article.objects.get(id=id), "articles": Article.objects.all()})
+
 
 def view_appointment(request, id : int):
     if request.method == 'POST':
@@ -211,14 +217,17 @@ def view_appointment(request, id : int):
         return HttpResponseRedirect(reverse("doctor"))
     return render(request, "view_appointment.html", {"appointment" : Appointment.objects.get(id=id), "doctor": Doctor.objects.get(username=request.user.username)})
 
+
 def view_calendar(request):
     if request.user.role == 'DOCTOR':
         return render(request, 'calendar.html', {"doctor" : Doctor.objects.get(username=request.user.username), 
                                                  "appointments" : Appointment.objects.filter(doctor=Doctor.objects.get(username=request.user.username)), "is_doctor":True})
     return render(request, 'calendar.html', {"is_doctor":False})
 
+
 def history(request):
     return render(request, "history.html", {"completed_appointments" : Appointment.objects.filter(patient = Patient.objects.get(username = request.user.username), done=True)})
+
 
 def rate_doctor(request, appointment_id : int):
     if request.method == 'POST':
