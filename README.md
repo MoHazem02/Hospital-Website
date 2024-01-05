@@ -66,7 +66,6 @@ Welcome to the Hospital Website, a full-stack web application built using the Dj
 - Other Python Libraries:
   - `django.contrib.auth` for user authentication
   - `datetime` for handling date and time
-  - ... (list any additional libraries)
 
 ## Installation
 
